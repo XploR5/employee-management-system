@@ -6,14 +6,14 @@ const port = 3000
 
 app.use(express.json())
 
-//create connection
+//// create connection
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',
 })
 
-//connect
+//// connect
 db.connect((err) => {
   if (err) {
     throw err
@@ -21,7 +21,7 @@ db.connect((err) => {
   console.log('MySql Connected!!')
 })
 
-//create database
+//// create database
 app.get('/createdb', (req, res) => {
   let sql = 'CREATE DATABASE employee_management_system'
   db.query(sql, (err, result) => {
@@ -31,11 +31,53 @@ app.get('/createdb', (req, res) => {
   })
 })
 
-const employees = [
-  { id: 1, full_name: 'Sahil Doshi', role: 'Sr. Consultant' },
-  { id: 2, full_name: 'Nikhil Jadhav', role: 'Sr. SDE' },
-  { id: 3, full_name: 'Rohan Balkondekar', role: 'SDE intern' },
-]
+////  Create table
+app.get('/createemployeestable', (req, res) => {
+  db.query('USE employee_management_system', () => {})
+  let sql =
+    'CREATE TABLE posts(id int AUTO_INCREMENT, full_name VARCHAR(255), role VARCHAR(255), PRIMARY KEY(id))'
+  db.query(sql, (err, result) => {
+    if (err) throw err
+    console.log(result)
+    res.send('Employees Table Created...')
+  })
+})
+
+//// Insert Employee 1
+app.get('/employee1', (req, res) => {
+  db.query('USE employee_management_system', () => {})
+  let post = { full_name: 'Sahil Doshi', role: 'Sr. Consultant' }
+  let sql = 'INSERT INTO posts SET ?'
+  let query = db.query(sql, post, (err, result) => {
+    if (err) throw err
+    console.log(result)
+    res.send('Employee 1 added')
+  })
+})
+
+//// Insert Employee 2
+app.get('/employee2', (req, res) => {
+  db.query('USE employee_management_system', () => {})
+  let post = { full_name: 'Nikhil Jadhav', role: 'Sr. SDE' }
+  let sql = 'INSERT INTO posts SET ?'
+  let query = db.query(sql, post, (err, result) => {
+    if (err) throw err
+    console.log(result)
+    res.send('Employee 2 added')
+  })
+})
+
+//// Insert Employee 3
+app.get('/employee3', (req, res) => {
+  db.query('USE employee_management_system', () => {})
+  let post = { full_name: 'Rohan Balkondekar', role: 'SDE intern' }
+  let sql = 'INSERT INTO posts SET ?'
+  let query = db.query(sql, post, (err, result) => {
+    if (err) throw err
+    console.log(result)
+    res.send('Employee 3 added')
+  })
+})
 
 app.get('/', (req, res) => {
   res.send('This is a employee-management-system')
@@ -91,5 +133,5 @@ app.delete('/employees/', (req, res) => {
 })
 
 app.listen(port, () => {
-  console.log(`App listening at http://localhost:${port}`)
+  console.log(`App listening at http:localhost:${port}`)
 })
