@@ -1,1 +1,1 @@
-This is a employee management system backend
+This is a employee management system backend using MySQL
