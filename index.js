@@ -66,62 +66,149 @@ app.get('/', (req, res) => {
   </ul>`)
 })
 
-//// create database
-app.get('/createdb', (req, res) => {
-  let sql = 'CREATE DATABASE employee_management_system'
-  db.query(sql, (err, result) => {
+//// Get all employees
+app.get('/employees', (req, res) => {
+  db.query('SELECT * FROM posts', (err, rows) => {
     if (err) throw err
-    console.log(result)
-    res.send('Database created...')
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #dddddd;
+    }
+    .fullname{
+    text-transform: capitalize;
+    font-weight: bold;
+    }
+    .role{
+    text-transform: uppercase;
+    font-style: italic;
+    }
+    .id {
+    width: 10%;
+    }
+
+    </style>
+    </head>
+    <body>
+      <h1>Employees</h1>
+      <table>
+        <tr>
+          <th class="id">ID</th>
+          <th>Full Name</th>
+          <th>Role</th>
+        </tr>
+        ${rows
+          .map(
+            (row) => `
+          <tr>
+            <td>${row.id}</td>
+            <td class="fullname">${row.full_name}</td>
+            <td class="role">${row.role}</td>
+          </tr>
+        `
+          )
+          .join('')}
+      </table>
+    </body>
+    </html>
+    `)
   })
 })
 
-
-app.get('/employees', (req, res) => {
-  res.send(employees)
-})
-
+//// Get employee by id
 app.get('/employees/:id', (req, res) => {
-  const employee = employees.find((e) => e.id === parseInt(req.params.id))
-  if (!employee)
-    return res.status(404).send('The employee with the given ID was not found.')
-  res.send(employee)
+  const { id } = req.params
+  db.query(`SELECT * FROM posts WHERE id = ${id}`, (err, rows) => {
+    if (err) throw err
+    if (rows.length === 0) {
+      return res.send(`<h1>Employee not found</h1>`)
+    }
+    const employee = rows[0]
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #dddddd;
+    }
+    </style>
+    </head>
+    <body>
+      <h1>Employee</h1>
+      <table>
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>Role</th>
+        </tr>
+        <tr>
+            <td>${employee.id}</td>
+            <td>${employee.full_name}</td>
+            <td>${employee.role}</td>
+          </tr>
+      </table>
+    </body>
+    </html>
+    `)
+  })
 })
 
+//// Create new employee
 app.post('/employees/', (req, res) => {
-  if (!req.body.full_name || !req.body.role) {
-    return res.status(400).send('The name or body is missing.')
-  } else if (employees.find((e) => e.full_name === req.body.full_name)) {
-    return res
-      .status(400)
-      .send('The employee with the given name already exists.')
+  const { full_name, role } = req.body
+  if (!full_name || !role) {
+    return res.status(400).send('Name and role are required')
   }
-
-  const emp = {
-    id: employees.length + 1,
-    full_name: req.body.full_name,
-    role: req.body.role,
-  }
-  employees.push(emp)
-  res.send(emp)
+  db.query('INSERT INTO posts SET ?', { full_name, role }, (err, result) => {
+    if (err) throw err
+    res.send(
+      `Employee ${full_name} with role ${role} created with id ${result.insertId}`
+    )
+  })
 })
 
+//// Update employee
 app.put('/employees/', (req, res) => {
-  const employee = employees.find((e) => e.id === parseInt(req.body.id))
-  if (!employee)
-    return res.status(404).send('The employee with the given ID was not found.')
-
-  employee.full_name = req.body.full_name
-  employee.role = req.body.role
-  res.send(employee)
+  const { id, full_name, role } = req.body
+  if (!id || !full_name || !role) {
+    return res.status(400).send('ID, Name and role are required')
+  }
+  db.query('UPDATE posts SET full_name = ?, role = ? WHERE id = ?', [full_name, role, id], (err, result) => { if (err) throw err
+    res.send(`ID: ${id} Employee ${full_name} with role ${role} updated`)
+  })
 })
 
-app.delete('/employees/', (req, res) => {
-  const employee = employees.find((e) => e.id === parseInt(req.body.id))
-  if (!employee)
-    return res.status(404).send('The employee with the given ID was not found.')
-
-  const index = employees.indexOf(employee)
-  employees.splice(index, 1)
-  res.send(employee)
+//// Delete employee
+app.delete('/employees/:id', (req, res) => {
+  const { id } = req.params
+  db.query('DELETE FROM posts WHERE id = ?', [id], (err, result) => {
+    if (err) throw err
+    res.send(`Employee with id ${id} deleted`)
+  })
 })
