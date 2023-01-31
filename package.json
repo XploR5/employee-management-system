@@ -4,7 +4,8 @@
   "description": "backend-for-employee-management-system",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon index.js"
+    "devStart": "nodemon index.js",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",

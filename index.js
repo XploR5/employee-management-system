@@ -2,15 +2,16 @@ const express = require('express')
 const mysql = require('mysql')
 
 const app = express()
-const port = 3000
+const port = 5501
 
 app.use(express.json())
 
 //// create connection
 const db = mysql.createConnection({
-  host: 'localhost',
+  host: 'db',
   user: 'root',
-  password: '',
+  password: 'secure',
+  port: 3306
 })
 
 //// connect
